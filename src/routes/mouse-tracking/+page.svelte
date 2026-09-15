@@ -59,13 +59,6 @@
 
 		gl.clearColor(1, 1, 1, 1);
 
-		function resize() {
-			renderer.setSize(window.innerWidth, window.innerHeight);
-		}
-
-		window.addEventListener('resize', resize, false);
-		resize();
-
 		const geometry = new Triangle(gl);
 
 		const program = new Program(gl, {
@@ -78,6 +71,14 @@
 				uAspect: { value: screen.w / screen.h }
 			}
 		});
+
+		function resize() {
+			renderer.setSize(screen.w, screen.h);
+			program.uniforms.uAspect.value = screen.w / screen.h;
+		}
+
+		window.addEventListener('resize', resize, false);
+		resize();
 
 		const mesh = new Mesh(gl, { geometry, program });
 
