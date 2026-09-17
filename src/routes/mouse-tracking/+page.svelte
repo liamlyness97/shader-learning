@@ -4,12 +4,18 @@
 
 	let wrapper: HTMLDivElement;
 
-	let mousePos = $state({
+	let mousePos: {
+		x: number;
+		y: number;
+	} = $state({
 		x: 0.5,
 		y: 0.5
 	});
 
-	let screen = $state({
+	let screen: {
+		w: number;
+		h: number;
+	} = $state({
 		w: 0,
 		h: 0
 	});
@@ -18,8 +24,6 @@
 		mousePos.x = e.clientX / screen.w;
 		mousePos.y = 1 - e.clientY / screen.h;
 	}
-
-	$inspect(mousePos);
 
 	const vertex = /* glsl */ `
         attribute vec2 uv;
@@ -48,7 +52,7 @@
             float dist = length(vec2((vUv.x - uMouse.x) * uAspect, vUv.y - uMouse.y));
             float blob = smoothstep(0.1, 0.0, dist);
 			vec3 trail = texture2D(uPrevious,vUv).rgb * 0.95;
-            gl_FragColor.rgb = vec3(1.0, 0.4, 0.1) * blob + trail;
+            gl_FragColor.rgb = max(vec3(1.0, 0.4, 0.1) * blob, trail);
             gl_FragColor.a = 1.0;
         }
     `;
