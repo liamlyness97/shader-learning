@@ -23,6 +23,12 @@
 			<div>
 				<a href={resolve('/ribbed-glass')}>Ribbed Glass</a>
 			</div>
+			<div>
+				<a href={resolve('/game-of-life')}>Conway's Game of Life</a>
+			</div>
+			<div>
+				<a href={resolve('/first-vertex')}>First Vertex Shader</a>
+			</div>
 		</div>
 	</div>
 </div>
