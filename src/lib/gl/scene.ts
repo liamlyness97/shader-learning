@@ -10,12 +10,15 @@ const vertex = /* glsl */`
     varying float vHeight;
     varying vec3 vNormal;
 
+    const float AMP = 0.2;
+    const float FREQ = 2.0;
+
     void main() {
-        float wave = sin(position.x * 2.0 + uTime);
-        float slopeX = 0.2 * 2.0 * cos(position.x * 2.0 + uTime);
+        float wave = sin(position.x * FREQ + uTime);
+        float slopeX = AMP * FREQ * cos(position.x * FREQ + uTime);
 
         vec3 pos = position;
-        pos.z += wave * 0.2;
+        pos.z += wave * AMP;
 
         vHeight = wave * 0.5 + 0.5;
         vNormal = normalize(vec3(-slopeX, 0.0, 1.0));
