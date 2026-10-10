@@ -29,6 +29,9 @@
 			<div>
 				<a href={resolve('/first-vertex')}>First Vertex Shader</a>
 			</div>
+			<div>
+				<a href={resolve('/rb-split')}>RB Slit (Chromatic Abrasion)</a>
+			</div>
 		</div>
 	</div>
 </div>
