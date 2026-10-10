@@ -10,6 +10,8 @@ const vertex = /*glsl*/ `
     uniform vec2 uCenter;
     uniform vec2 uPeriod;
     uniform vec2 uOffset;
+    uniform vec2 uHalf;
+    uniform vec2 uTileHalf;
 
     varying vec2 vUv;
 
@@ -19,7 +21,13 @@ const vertex = /*glsl*/ `
         vec2 center = uCenter + uOffset;
         vec2 wrapped = mod(center + uPeriod * 0.5, uPeriod) - uPeriod * 0.5;
 
-        vec3 pos = vec3(wrapped + position.xy, position.z);
+        vec2 inside = uHalf - abs(wrapped);
+        vec2 arrive = smoothstep(-uTileHalf, uTileHalf, inside);
+        float arrival = min(arrive.x, arrive.y);
+
+        float s = mix(0.85, 1.0, arrival);
+
+        vec3 pos = vec3(wrapped + position.xy * s, position.z);
 
         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }
@@ -33,6 +41,7 @@ const fragment = /*glsl*/ `
     uniform float uImageAspect;
     uniform float uTileAspect;
     uniform vec3 uColour;
+    uniform vec2 uTileSize;
 
     varying vec2 vUv;
 
@@ -43,10 +52,14 @@ const fragment = /*glsl*/ `
         } else {
             scale = vec2(uTileAspect / uImageAspect, 1.0);
         }
+        vec2 p = (vUv - 0.5) * uTileSize;
+        float radius = 24.0;
+        vec2 q = abs(p) - (uTileSize * 0.5 - radius);
+        float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - radius;
+        float alpha = 1.0 - smoothstep(-1.0, 0.0, d);
         vec2 coverUv = vec2(((vUv - 0.5) * scale) + 0.5);
-        gl_FragColor.rgb = vec3(uColour);
         gl_FragColor.rgb = texture2D(tMap, coverUv).rgb;
-        gl_FragColor.a = 1.0;
+        gl_FragColor.a = alpha;
     }
 `
 
@@ -90,6 +103,7 @@ export function createScene(node: HTMLElement) {
     const tiles = [];
 
     const offset = { value: new Vec2(0, 0) }
+    const half = { value: new Vec2(0, 0) };
 
     // Looping Rows
     for (let row = 0; row < rows; row++ ) {
@@ -112,6 +126,7 @@ export function createScene(node: HTMLElement) {
             const program = new Program(gl, {
                 vertex,
                 fragment,
+                transparent: true,
                 uniforms: {
                     uColour: { value: new Vec3(t, 0.4, 1.0 - t) },
                     uCenter: { value: new Vec2(x, y) },
@@ -119,10 +134,12 @@ export function createScene(node: HTMLElement) {
                     uTileAspect: { value: tileW / tileH},
                     uImageAspect: { value: 1.0 },
                     tMap: { value: texture },
+                    uTileSize: {value: new Vec2(tileW, tileH)},
+                    uTileHalf: { value: new Vec2(tileW / 2, tileH / 2) },
+                    uHalf: half,
                     uOffset: offset
                 }
             });
-
             const mesh = new Mesh(gl, {geometry, program, frustumCulled: false})
             mesh.setParent(scene);
 
@@ -134,6 +151,7 @@ export function createScene(node: HTMLElement) {
         const w = node.clientWidth;
         const h = node.clientHeight;
         renderer.setSize(w, h);
+        half.value.set(w / 2, h / 2);
         
         camera.orthographic({
             left: -w / 2,
